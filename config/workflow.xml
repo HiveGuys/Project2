@@ -1,0 +1,121 @@
+<workflow-app xmlns="uri:oozie:workflow:0.4" name="project2">
+    <!-- Start job control node -->
+    <start to="sqoop-truncate"/>
+
+    <action name="sqoop-truncate">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.4">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <arg>eval</arg>
+            <arg>--connect</arg>
+            <arg>jdbc:mysql://sandbox-hdp.hortonworks.com/GENDER_STATS</arg>
+            <arg>--username</arg>
+            <arg>USER</arg>
+            <arg>--password</arg>
+            <arg>p4ssw0rd</arg>
+            <arg>--query</arg>
+            <arg>TRUNCATE TABLE GENDER</arg>
+        </sqoop>
+        <ok to="sqoop-export"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="sqoop-export">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.4">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <command>export --connect jdbc:mysql://sandbox-hdp.hortonworks.com/GENDER_STATS --username USER --password p4ssw0rd --table GENDER --fields-terminated-by | --export-dir data -m 1</command>
+        </sqoop>
+        <ok to="sqoop-import"/>
+        <error to="kill"/>
+    </action>
+
+    <action name="sqoop-import">
+        <sqoop xmlns="uri:oozie:sqoop-action:0.4">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="out/q2f"/>
+            </prepare>
+            <arg>import</arg>
+            <arg>--connect</arg>
+            <arg>jdbc:mysql://sandbox-hdp.hortonworks.com/GENDER_STATS</arg>
+            <arg>--username</arg>
+            <arg>USER</arg>
+            <arg>--password</arg>
+            <arg>p4ssw0rd</arg>
+            <arg>--table</arg>
+            <arg>GENDER</arg>
+            <arg>--target-dir</arg>
+            <arg>out/q2f/</arg>
+            <arg>--fields-terminated-by</arg>
+            <arg>|</arg>
+            <arg>-m</arg>
+            <arg>1</arg>
+        </sqoop>
+        <ok to="hive-create"/>
+        <error to="kill"/>
+    </action>
+
+    <!-- Hive table creation -->
+    <action name="hive-create">
+        <hive xmlns="uri:oozie:hive-action:0.4">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <!-- Set up connection to the actual Hive Metastore -->
+            <configuration>
+                <property>
+                    <name>hive.metastore.uris</name>
+                    <value>thrift://sandbox-hdp.hortonworks.com:9083</value>
+                </property>
+            </configuration>
+            <script>${scripts}/create.sql</script>
+        </hive>
+
+        <ok to="hive-load" />
+        <error to="kill" />
+    </action>
+
+    <!-- Hive table loading -->
+    <action name="hive-load">
+        <hive xmlns="uri:oozie:hive-action:0.4">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>hive.metastore.uris</name>
+                    <value>thrift://sandbox-hdp.hortonworks.com:9083</value>
+                </property>
+            </configuration>
+            <script>${scripts}/load.sql</script>
+        </hive>
+
+        <ok to="Q2F" />
+        <error to="kill" />
+    </action>
+
+    <!-- Hive Question 2 (Female) -->
+    <action name="Q2F">
+        <hive xmlns="uri:oozie:hive-action:0.4">
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>hive.metastore.uris</name>
+                    <value>thrift://sandbox-hdp.hortonworks.com:9083</value>
+                </property>
+            </configuration>
+            <script>${scripts}/hive2f.sql</script>
+        </hive>
+
+        <ok to="end" />
+        <error to="kill" />
+    </action>
+
+    <!-- Kill job control node -->
+    <kill name="kill">
+        <message>message[${wf:errorMessage(wf:lastErrorNode())}]</message>
+    </kill>
+    <!-- End job control node -->
+    <end name="end" />
+</workflow-app>
