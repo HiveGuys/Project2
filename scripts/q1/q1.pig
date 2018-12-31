@@ -1,8 +1,8 @@
 --Change directory to local directory
-REGISTER '/home/cloudera/pigscript.py' USING jython as myfuncs;
-REGISTER '/home/cloudera/question1pig.py' USING jython as myfuncs;
+REGISTER 'question1pig.py' USING jython as myfuncs;
 
-data = LOAD 'output-gender-stats/part-m-00000' using PigStorage('|')
+--data = LOAD 'out/part-m-00000' using PigStorage('|')
+data = LOAD 'data/Gender_StatsClean.csv' using PigStorage('|')
     AS (country_name: chararray, country_code: chararray, indicator_name: chararray, indicator_code: chararray, 
     y1960: double, y1961: double, y1962: double, y1963: double, y1964: double, y1965: double, y1966: double, y1967: double, y1968: double, y1969: double, y1970: double,
     y1971: double, y1972: double, y1973: double, y1974: double, y1975: double, y1976: double, y1977: double, y1978: double, y1979: double, y1980: double,
@@ -17,7 +17,8 @@ result = foreach filter_data generate myfuncs.concat(country_name, indicator_nam
 
 newResult = filter result by not($2 == 'None');
 
-STORE newResult INTO 'hbase://question1' USING org.apache.pig.backend.hadoop.hbase.HBaseStorage(
-'year:year_result,
- value:value_result'
-);
+--STORE newResult INTO 'hbase://question1' USING org.apache.pig.backend.hadoop.hbase.HBaseStorage(
+--'year:year_result,
+-- value:value_result'
+--);
+store newResult into 'out/pig/q1' using PigStorage('|');

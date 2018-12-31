@@ -1,1 +1,0 @@
-create 'question1', 'country', 'indication', 'year', 'value'

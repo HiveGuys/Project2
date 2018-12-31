@@ -1,12 +1,12 @@
-USE GENDER_STATISTICS;
+USE GENDER_STATS;
 
-add file  /home/cloudera/hivescript.py;
+add file  hdfs:///user/p2/scripts/q2/hivetest.py;
 
 DROP TABLE IF EXISTS QUESTION_4;
 
 CREATE TABLE QUESTION_4
 AS SELECT TRANSFORM (*)
-USING 'python testscript.py' 
+USING 'python hivescript.py' 
 AS (COUNTRY, INDICATION, CHANGE)
-FROM GENDER_STATS
+FROM GENDER
 WHERE INDICATOR_NAME='Employment to population ratio, 15+, female (%) (modeled ILO estimate)';
