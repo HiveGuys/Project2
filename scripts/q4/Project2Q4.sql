@@ -1,13 +1,12 @@
 USE GENDER_STATISTICS;
 
-DROP TABLE IF EXISTS QUESTION_3;
+add file  /home/cloudera/hivescript.py;
 
-CREATE TABLE QUESTION_3
+DROP TABLE IF EXISTS QUESTION_4;
+
+CREATE TABLE QUESTION_4
 AS SELECT TRANSFORM (*)
-USING 'python hivescript.py' 
-AS (COUNTRY, INDICATION, CHANGE) 
+USING 'python testscript.py' 
+AS (COUNTRY, INDICATION, CHANGE)
 FROM GENDER_STATS
---where clauses change these
-WHERE INDICATOR_NAME LIKE 'Employment to population ratio, 15+, Female (%) (modeled ILO estimate)%' 
-AND (INDICATOR_NAME NOT LIKE '%cumulative%') 
-AND (INDICATOR_NAME LIKE '%female%');
+WHERE INDICATOR_NAME='Employment to population ratio, 15+, female (%) (modeled ILO estimate)';
