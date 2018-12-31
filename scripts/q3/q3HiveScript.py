@@ -7,32 +7,28 @@ for line in sys.stdin:
         country = 'none'
         ind = 'none'
         lastResult = 'None'
-        yearOne = 0
-        yearTwo = 0
-        yearDif = 0
-        prevResult = 0
-        result = 0
-        average = 0
-        sumCount = 0
+        year = 'None'
+        firstYear = 0
+        secondYear = 0
+        firstVal = 0
+        secondVal = 0
         for column in splits:
                 if count == 0:
                         country = str(column)
                 elif count == 2:
                         ind = str(column)
-                elif count > 44:
+                elif count > 53:
                         if str(column).strip() != '\N':
-                                if prevResult == 0:
-                                    prevResult = float(column)
-                                    yearOne = 1960 + count - 4
+                                if firstYear == 0:
+                                    firstYear = 1960 + count - 4
+                                    firstVal = float(column)
                                 else:
-                                    result = float(column)
-                                    yearTwo = 1960 + count - 4
-                                    yearDif = yearTwo - yearOne
-                                    average = average + (result - prevResult)
-                                    sumCount = sumCount + 1
-                                    yearOne = yearOne
-                                    prevResult = result
+                                    secondYear = 1960 + count - 4
+                                    secondVal = float(column)
                 count = count + 1
-        lastResult = float(average) / float(sumCount)
-        result = '\t'.join([country, ind, lastResult])
-        print result
+        if (firstYear != secondYear) and (secondYear != 0) and (firstYear != 0):  
+                difference = str(secondVal - firstVal)
+                firstYear = str(firstYear)
+                secondYear = str(secondYear)
+                result = '\t'.join([country, ind, firstYear, secondYear, difference])
+                print result
