@@ -2,7 +2,7 @@
     <!-- Start job control node -->
     <start to="sqoop-truncate"/>
 
-    <action name="sqoop-truncate">
+    <action name="sqoop-truncate" retry-max="2" retry-interval="1">
         <sqoop xmlns="uri:oozie:sqoop-action:0.4">
             <job-tracker>${resourceManager}</job-tracker>
             <name-node>${nameNode}</name-node>
@@ -35,7 +35,7 @@
             <job-tracker>${resourceManager}</job-tracker>
             <name-node>${nameNode}</name-node>
             <prepare>
-                <delete path="out/q2f"/>
+                <delete path="out/"/>
             </prepare>
             <arg>import</arg>
             <arg>--connect</arg>
@@ -47,7 +47,7 @@
             <arg>--table</arg>
             <arg>GENDER</arg>
             <arg>--target-dir</arg>
-            <arg>out/q2f/</arg>
+            <arg>out/</arg>
             <arg>--fields-terminated-by</arg>
             <arg>|</arg>
             <arg>-m</arg>
@@ -89,13 +89,14 @@
             </configuration>
             <script>${scripts}/load.sql</script>
         </hive>
-
-        <ok to="Q2F" />
+      
+        <ok to="Q2" />
         <error to="kill" />
     </action>
 
-    <!-- Hive Question 2 (Female) -->
-    <action name="Q2F">
+    <!-- Hive Question 2 -->
+    <action name="Q2">
+
         <hive xmlns="uri:oozie:hive-action:0.4">
             <job-tracker>${resourceManager}</job-tracker>
             <name-node>${nameNode}</name-node>
@@ -107,6 +108,58 @@
             </configuration>
             <script>${scripts}/hive2f.sql</script>
         </hive>
+
+        <ok to="pig-q1" />
+        <error to="kill" />
+    </action>
+
+    <!-- Pig Question 1 -->
+    <action name="pig-q1">
+        <pig>
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <script>${scripts}/q1/q1.pig</script>
+            <file>${scripts}/q1/question1pig.py</file>
+        </pig>
+
+        <ok to="pig-q2" />
+        <error to="kill" />
+    </action>
+
+    <!-- Pig Question 2 -->
+    <action name="pig-q2">
+        <pig>
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <script>${scripts}/q2/q2.pig</script>
+            <file>${scripts}/q2/test.py</file>
+        </pig>
+
+        <ok to="pig-q3" />
+        <error to="kill" />
+    </action>
+
+    <!-- Pig Question 3 -->
+    <action name="pig-q3">
+        <pig>
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <script>${scripts}/q3/q3.pig</script>
+            <file>${scripts}/q3/q3pigUDF.py</file>
+        </pig>
+
+        <ok to="pig-q5" />
+        <error to="kill" />
+    </action>
+
+    <!-- Pig Question 5 -->
+    <action name="pig-q5">
+        <pig>
+            <job-tracker>${resourceManager}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <script>${scripts}/q5/q5.pig</script>
+            <file>${scripts}/q5/difference.py</file>
+        </pig>
 
         <ok to="end" />
         <error to="kill" />
